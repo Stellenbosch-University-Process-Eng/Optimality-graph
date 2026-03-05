@@ -1,4 +1,4 @@
-# The Optimality Graph
+# A process optimality graph for prescriptive analytics generated using established machine learning methods
 
 Tobias M Louw, Alexander Schulze-Hulbe, Steven M Bradshaw
 
@@ -16,11 +16,15 @@ Prescriptive analytics aims to leverage data to recommend an optimal course of a
 
 Consider a process (Fig. 1) which is defined by a coordinate in the continuous state space $\mathbf{x} \in \mathbb{R}^{m}$. The state space maps to both the online measurement space $\mathbf{y} = h\left( \mathbf{x} \right) \in \mathbb{R}^{p}$, as well as some scalar key performance indicator $KPI = z\left( \mathbf{x} \right)\mathbb{\in R}$, which may be available online or only following retrospective analysis (e.g., through offline laboratory tests assessing the product quality). The process state $\mathbf{x}$ is subject to operator actions $\mathbf{u}$ as well as uncontrolled disturbances $\mathbf{d}$.
 
-![Figure 1. Operator actions $\mathbf{u}$ and uncontrolled disturbances $\mathbf{d}$ affect the process state $\mathbf{x}$ and mode $\mathcal{M}$, which is in turn observed through $\mathbf{y}$ and characterized by a (retrospectively) assigned KPI $z$.](figures\1-stateDiagram.png)
+![*Figure 1. Operator actions $\mathbf{u}$ and uncontrolled disturbances $\mathbf{d}$ affect the process state $\mathbf{x}$ and mode $\mathcal{M}$, which is in turn observed through $\mathbf{y}$ and characterized by a (retrospectively) assigned KPI $z$.*](https://github.com/Stellenbosch-University-Process-Eng/Optimality-graph/blob/main/figures/1-stateDiagram.PNG)
+
+Figure 1. Operator actions $\mathbf{u}$ and uncontrolled disturbances $\mathbf{d}$ affect the process state $\mathbf{x}$ and mode $\mathcal{M}$, which is in turn observed through $\mathbf{y}$ and characterized by a (retrospectively) assigned KPI $z$.
 
 We assume the process can be classified into discrete process modes based on online measurement, i.e., $\mathcal{M} = f\left( \mathbf{y} \right) \mathbb{\in N}$ (we discuss this concept with more nuance in section 2.1), and that the $KPI$ varies sufficiently from one mode to the other such that the modes can be ranked in terms of performance with a reasonable level of statistical significance. Further, mode shifts can be investigated and attributed to either operator actions $\mathbf{u}$, or disturbances $\mathbf{d}$. In this case, the process can be described by an optimality graph (Meyer, 2023), an example of which is shown in Fig. 2.
 
-![Figure 2. Example optimality graph with five modes A-E indicated by nodes, each with an associated mean recovery serving as KPI. Mode switches due to operator actions $\mathbf{u}$ and disturbances $\mathbf{d}$ are indicated by solid and dashed edges, respectively.](figures\2-exampleOptimalityGraph.png)
+![*Figure 2. Example optimality graph with five modes A-E indicated by nodes, each with an associated mean recovery serving as KPI. Mode switches due to operator actions $\mathbf{u}$ and disturbances $\mathbf{d}$ are indicated by solid and dashed edges, respectively.*](https://github.com/Stellenbosch-University-Process-Eng/Optimality-graph/blob/main/figures/2-exampleOptimalityGraph.PNG)
+
+Figure 2. Example optimality graph with five modes A-E indicated by nodes, each with an associated mean recovery serving as KPI. Mode switches due to operator actions $\mathbf{u}$ and disturbances $\mathbf{d}$ are indicated by solid and dashed edges, respectively.
 
 Figure 2 illustrates a hypothetical process with five modes identified from historical data and represented as nodes. The KPI for the process is recovery, indicated as a percentage associated with each mode. The graph is split into two groups separated by disturbances: modes A and B on the left and modes C, D and E on the right. While operator actions $\mathbf{u}$ have enabled shifting modes within groups (between A and B, or between C, D and E), there is no historical record of operator actions resulting in a shift from modes in one group to another. Modes in one group are therefore practically unreachable from modes in another group. As an example, the hypothetical process may have been operating in mode B when an unmeasured disturbance caused a mode shift to E, dropping recovery from 90% to 80%. No operator actions enable a shift back to mode B. However, in the past a decrease in $u_{2}$ shifted the process from mode E to D, and a subsequent increase in $u_{1}$ shifted the process to mode C with an associated recovery of 85%. The prescriptive analytics tools can thus recommend a set of operator actions that will maximize recovery under the current process constraints. This paper aims to illustrate the development of an optimality graph to inform operator actions.
 
@@ -40,7 +44,7 @@ Secondly, even if there is sufficient observability, clusters may not be readily
 
 Finally, a single process KPI may not be readily determined or assigned to a specific moment in time or a single process mode. Identifying a set of KPIs and retrospectively associating these with historic data may require in-depth process knowledge, interviews with plant personnel, etc. Multiple KPIs can be combined using suitable weightings or preference functions, or a multi-objective optimization strategy could be attempted. A single, readily assigned KPI is recommended for initial analysis: more resources may be invested in identifying and assigning additional KPIs of more direct relevance to plant performance.
 
-We simply assume that the data wrangling process results in a set of $N$ samples of $Q$-dimensional engineered features $\mathbf{y}_{k}$ arranged in an array $Y \in \mathbb{R}^{n \times q}$, with an individual KPI value $z_{k}$ associated with each sample, arranged in a vector $\mathbf{z} \in \mathbb{R}^{n}$. For simplicity, we retain the symbol $\mathbf{y}$ to represent engineered features obtained directly from online measurements.
+We simply assume that the data wrangling process results in a set of $N$ samples of $Q$-dimensional engineered features $\y_k $ arranged in an array $Y \in \mathbb{R}^{n \times q}$, with an individual KPI value $z_k$ associated with each sample, arranged in a vector $\mathbf{z} \in \mathbb{R}^{n}$. For simplicity, we retain the symbol $\mathbf{y}$ to represent engineered features obtained directly from online measurements.
 
 ### 2.2 Dimensionality reduction and clustering
 
@@ -50,13 +54,15 @@ Avoiding YAMLA, we propose applying supervised regression techniques with implic
 
 Clustering can then be performed on the latent variables $\mathbf{t}$. We recommend *k*-means clustering as a first attempt. However, one should bear in mind that clustering occurs in the feature space and does not account for the time-series nature of data. A common problem is that consecutive data points may be assigned to different clusters on an alternating basis, resulting in rapid "switching" between clusters which is inconsistent with our understanding of process modes. This is illustrated in Fig. 3 for a dataset consisting of level and temperature measurements. Process intuition would indicate that clusters A and B should be combined into a single cluster to avoid the rapid mode switching. This is trivial to see in the fictitious example but becomes more difficult in higher dimensions with many observations and clusters. Other clustering methods have been developed to address similar challenges, but these are not typically implemented in common libraries. We avoid using YAMLA to address the issue and, instead of developing a bespoke clustering method, use a confusion matrix to detect rapid mode switching instead. By computing the confusion matrix where we use the cluster assignment at time $t$ as the "true" class and the cluster assignment at time $t + 1$ as the "predicted" class, the confusion matrix will show how frequently an observation switches from one cluster at time $t$ to another at $t + 1$. The confusion matrix for the above dataset is shown in Table 1.
 
-![~Figure 3. Time-series data in feature space (top) and as a time series plot (middle) colored according to cluster assignments. Gray lines indicate transitions between clusters from one timepoint to the next. Many transitions occur between clusters A and B, but few occur between A and C or B and C. Joining clusters A and B into a single cluster yields the modes shown in the bottom panel.](figures\3-clusters.png)
+![*Figure 3. Time-series data in feature space (top) and as a time series plot (middle) colored according to cluster assignments. Gray lines indicate transitions between clusters from one timepoint to the next. Many transitions occur between clusters A and B, but few occur between A and C or B and C. Joining clusters A and B into a single cluster yields the modes shown in the bottom panel.*](https://github.com/Stellenbosch-University-Process-Eng/Optimality-graph/blob/main/figures/3-clusters.png)
+
+Figure 3. Time-series data in feature space (top) and as a time series plot (middle) colored according to cluster assignments. Gray lines indicate transitions between clusters from one timepoint to the next. Many transitions occur between clusters A and B, but few occur between A and C or B and C. Joining clusters A and B into a single cluster yields the modes shown in the bottom panel.
 
 **Table 1.** Confusion matrix to assess cluster switching.
 
-| Current | |  Next |  |
+|  | |  Next |  |
 |:---:|:---:|:---:|:---:|
-|  | **A** | **B** | **C** |
+| **Current** | **A** | **B** | **C** |
 | **A** | 260 | 76 | 8 |
 | **B** | 76 | 269 | 7 |
 | **C** | 7 | 8 | 288 |
@@ -69,7 +75,9 @@ The within- and between cluster KPI distribution is a useful metric to assess th
 
 Clustering supplies non-descriptive labels, but intuitive labels are more useful: SHAP analysis provides a means of developing descriptive mode labels (Lundberg et al., 2017). SHAP analysis calculates the contribution of each feature to a supervised model output. Since clustering is an unsupervised learning task, SHAP cannot be applied directly. To circumvent this problem, a classifier is trained to predict the cluster assignments based on input data, and SHAP analysis is used to determine which features most influence the predicted probability for each class. The classifier will be useful later during online mode classification as well. Figure 4 shows SHAP values for each feature in the synthetic level-temperature dataset. The magnitude of the SHAP values indicate the strength of the contribution to the model output (in this case, probability of belonging to mode C). It is clear from this trivial data set that the combined mode A+B is associated with a low temperature and mode C with a high temperature, while level does not have a significant impact on the predictions. The modes can therefore be renamed "low temperature" and "high temperature", respectively. Mode labelling is also readily automated using LLMs.
 
-![Figure 4. SHAP values indicating the contribution of each feature to the probability that an observation belongs to mode C, e.g. high temperature results in an increase in probability that an observation belongs to mode C.](figures\4-exampleShap.png)
+![*Figure 4. SHAP values indicating the contribution of each feature to the probability that an observation belongs to mode C, e.g. high temperature results in an increase in probability that an observation belongs to mode C.*](https://github.com/Stellenbosch-University-Process-Eng/Optimality-graph/blob/main/figures/4-exampleShap.png)
+
+Figure 4. SHAP values indicating the contribution of each feature to the probability that an observation belongs to mode C, e.g. high temperature results in an increase in probability that an observation belongs to mode C.
 
 ### 2.4 Transitions
 
@@ -91,9 +99,13 @@ LightGBM was used as classifier to predict process modes and SHAP analysis was p
 
 Inspection of the time series data colored according to process mode enabled the identification of actions resulting in mode shifts for all changes, except for the mode shift from 5 to 2 which is subsequently classified as a disturbance. The resulting optimality graph is shown in Fig. 7. The graph shows that adjusting the air flow rate enabled movement between modes 3 and 5, but a disturbance shifted the process to a different operating region where movement due to operator actions is limited to modes 1, 2, 4 and 6. Here, increasing the starch and amina feed flowrates resulted in some process improvement.
 
-![Figure 5. Boxplot of percentage iron in the product (KPI) grouped according to the identified process modes, showing a gradual increase in KPI from mode 1 to 6.](figures\5-boxPlotsKPI.png)
+![*Figure 5. Boxplot of percentage iron in the product (KPI) grouped according to the identified process modes, showing a gradual increase in KPI from mode 1 to 6.*](https://github.com/Stellenbosch-University-Process-Eng/Optimality-graph/blob/main/figures/5-boxPlotsKPI.png)
 
-![Figure 6. SHAP analysis showing features with the greatest impact on mode classification for the top three performing modes.](figures\6-caseStudyShap.png)
+Figure 5. Boxplot of percentage iron in the product (KPI) grouped according to the identified process modes, showing a gradual increase in KPI from mode 1 to 6.
+
+![*Figure 6. SHAP analysis showing features with the greatest impact on mode classification for the top three performing modes.*](https://github.com/Stellenbosch-University-Process-Eng/Optimality-graph/blob/main/figures/6-caseStudyShap.PNG)
+
+Figure 6. SHAP analysis showing features with the greatest impact on mode classification for the top three performing modes.
 
 **Table 2.** Mode labels assigned using SHAP analysis
 
@@ -106,7 +118,9 @@ Inspection of the time series data colored according to process mode enabled the
 | 5 | Low air flow rates |
 | 6 | High levels |
 
-![Figure 7. Optimality graph showing the transitions between identified modes due to operator actions (solid lines) and disturbances (dashed line).](figures\7-caseStudyOptimalityGraph.png)
+![*Figure 7. Optimality graph showing the transitions between identified modes due to operator actions (solid lines) and disturbances (dashed line).*](https://github.com/Stellenbosch-University-Process-Eng/Optimality-graph/blob/main/figures/7-caseStudyOptimalityGraph.PNG)
+
+Figure 7. Optimality graph showing the transitions between identified modes due to operator actions (solid lines) and disturbances (dashed line).
 
 ---
 
